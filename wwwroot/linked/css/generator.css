@@ -1,0 +1,57 @@
+
+html,
+body {
+	height: 100% ;
+	overflow: hidden ;
+	width: 100% ;
+	}
+
+body {
+	margin: 0px 0px 0px 0px ;
+	padding: 0px 0px 0px 0px ;
+	}
+	
+div.headerPanel {
+	background-color: #E0E0E0 ;
+	left: 0px ;
+	height: 50px ;
+	overflow: hidden ;
+	position: fixed ;
+	right: 0px ;
+	top: 0px ;
+	}
+
+div.editorPanel {
+	background-color: #F0F0F0 ;
+	bottom: 0px ;
+	left: 0px ;
+	overflow: hidden ;
+	position: fixed ;
+	top: 50px ;
+	width: 50% ;
+	}
+
+div.resultsPanel {
+	background-color: #CCCCCC ;
+	bottom: 0px ;
+	overflow: hidden ;
+	position: fixed ;
+	right: 0px ;
+	top: 50px ;
+	width: 50% ;
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+textarea.html {
+	display: block ;
+	height: 700px ;
+	width: 99% ;
+	}
