@@ -1,41 +1,21 @@
 
-<cfscript>
+<!--- We're expecting a single HTML field to convert. --->
+<cfparam name="form.html" type="string" default="" />
 	
-	param name="form.html" type="string" default="";
+<!--- Create an instance of our HTML Email utility. --->
+<cfset htmlEmailUtility = new model.HTMLEmailUtility() /> 
 	
-	// Create our JSoup class. The class mostly has static methods for parsing so we
-	// don't need to initialize it. 
-	jSoupClass = createObject( "java", "org.jsoup.Jsoup" );
-
-	// Parse the incoming HTML into a jSoup DOM (Document Object Model).
-	dom = jSoupClass.parse( javaCast( "string", form.html ) );
+<!--- 
+	Convert the standard HTML into an HTML that is [more] suitable for email. This works
+	by inlining the CSS classes into the elements that match the CSS selectors. This also
+	attempts to inline CSS properties that are inherited by parent classes. 
+--->
+<cfset emailMarkup = htmlEmailUtility.prepareHtmlForEmail( form.html ) />
 	
-	
-	// Get the STYLE attributes.
-	styleNodes = dom.select( "style" );
-	
-	styleNodes.remove();
-	
-	
-	styleContent = "";
-	
-	for ( styleNode in styleNodes ){
-		
-		styleContent &= styleNode.html();
-		
-	}
-	
-	cssRules = reMatch( "[^{]+\{[^}]*\}", styleContent );
-	
-	writeDump(cssRules);
-	abort;
-	
-	
-	
-</cfscript>
-
+<!--- Reset the output buffer and stream the HTML content back to the client. --->
 <cfcontent
 	type="text/html; charset=utf-8"
-	variable="#toBinary( toBase64( dom.toString() ) )#"
+	variable="#toBinary( toBase64( emailMarkup ) )#"
 	/>
+	
 	

@@ -33,6 +33,11 @@ $( "div.editorPanel textarea.html" ).keyup(
 				
 				$( "div.resultsPanel div.htmlPreview textarea.html" ).val( html );
 				
+				var doc = $( "div.resultsPanel div.renderPreview iframe" ).get( 0 ).contentWindow.document;
+				doc.open();
+				doc.write( html );
+				doc.close();
+				
 			}
 		);
 		
