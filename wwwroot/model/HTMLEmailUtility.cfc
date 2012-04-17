@@ -32,18 +32,36 @@ component
 		for (var node in nodesWithStyle){
 			
 			// Move style to a data attribute.
-			node.attr( "data-temp-style", node.attr( "style" ) );
+			node.attr( 
+				javaCast( "string", "data-temp-style" ), 
+				node.attr( javaCast( "string", "style" ) )
+			);
 			
 			// Reset the style attribute.
-			node.attr( "style", "" );
+			node.attr( 
+				javaCast( "string", "style" ), 
+				javaCast( "string", "" ) 
+			);
 			
 		}
 		
 		// Loop over each rule to apply it in turn.
 		for (var rule in cssRules){
 			
-			// Select all the nodes that match the given selector.
-			var selectedNodes = dom.select( javaCast( "string", rule.selector ) );
+			// Select all the nodes that match the given selector. This is really the only step
+			// that can raise an exception. If the selector is not supported, we'll need to catch
+			// the error and skip this selector.
+			try {
+			
+				// Get the matching DOM nodes.
+				var selectedNodes = dom.select( javaCast( "string", rule.selector ) );
+			
+			} catch( Any error ){
+				
+				// The selector is not supported. Skip to the next rule.
+				continue;
+				
+			}
 			
 			// Make sure we have nodes. If we don't bypass the node processing.
 			if (!selectedNodes.size()){
@@ -71,10 +89,11 @@ component
 			// Loop over each selected node and inject the CSS inline.
 			for (var node in selectedNodes){
 				
-				// When injecting the CSS remember to keep the ............
+				// When injecting the CSS remember to keep the newest CSS at the end of the attribute
+				// so that it takes the highest precedence. 
 				node.attr(
-					"style",
-					(propertiesList & node.attr( "style" ))
+					javaCast( "string", "style" ),
+					javaCast( "string", (node.attr( javaCast( "string", "style" ) ) & propertiesList ) )
 				);
 				
 			}
@@ -87,17 +106,69 @@ component
 			
 			// Move temp stlye back into place.
 			node.attr(
-				"style",
-				(node.attr( "style" ) & node.attr( "data-temp-style" ) )
+				javaCast( "string", "style" ),
+				(node.attr( javaCast( "string", "style" ) ) & node.attr( javaCast( "string", "data-temp-style" ) ) )
 			);
 
 			// Delete the temp attribute.
-			node.removeAttr( "data-temp-style" );
+			node.removeAttr( javaCast( "string", "data-temp-style" ) );
 			
 		}
 		
 		// Return the augmented jSoup document node.
 		return( dom );
+		
+	}
+	
+	
+	// I take the given selector and calculate its generic specificity so that it can be compared
+	// to other selectors that match the same DOM nodes. For this, we'll be using the algorithm
+	// outlined on : http://www.blooberry.com/indexdot/css/topics/cascade.htm . This asks to count
+	// the following values:
+	//
+	// 1. Count the number if ID attributes in the selector
+	// 2. Count the number of attributes and pseudo-classes in the selector.
+	// 3. Count the number of element names in the selector
+	//
+	// ... and then add up the results (character-based, not numerically). Of course, we are not
+	// doing the best job - we're just using lose RegularExpression matching.
+	function calculateSelectorSpecificity( String selector ){
+		
+		// Before we calculate the values, we want to strip out "noise" that will make the rough
+		// regular expressions harder to work with. 
+		
+		// Strip out the inner-text of an attribute selector.
+		selector = reReplace( selector, "\[[^\]]+\]", "[]", "all" );
+		
+		// Strip out any pseudo-selectors.
+		selector = reReplace( selector, ":[\w_-]+", "", "all" );
+		
+		// Replace the wild-card with a made-up element.
+		selector = reReplace( selector, "\*", "node", "all" );
+		
+		// Now, let's put a space in front of key syntax elements to make the elemental matching
+		// a bit easier to parse.
+		selector = reReplace( selector, "(##\w+|\.\w+|\[)", " \1", "all" );
+		
+		// Get the number of ID selectors.
+		var idCount = arrayLen(
+			reMatch( "\s##\w+", selector )
+		);
+		
+		// Get the number of attributes and pseudo-selectors.
+		var attributeCount = arrayLen(
+			reMatch( "\s(\[\]|\.[\w_-]+)", selector )
+		);
+		
+		// Get the number of elements.
+		var elementCount = arrayLen(
+			reMatch( "(^|\s)\w+", selector )
+		);
+		
+		// Concatenate the three numbers (as strings) and then return the numeric product.
+		return(
+			int( idCount & attributeCount & elementCount )
+		);
 		
 	}
 	
@@ -185,7 +256,7 @@ component
 	function parseRuleBlock( String ruleBlock ){
 		
 		// Create our collection of rules. Each rule will be a struct with a Selector and a
-		// Properties key. 
+		// Properties key with a "lose" specificity calculation.
 		var rules = [];
 		
 		// For each rule block, let's separate the selectors from the properties. Remember, there
@@ -217,7 +288,8 @@ component
 					rules,
 					{
 						selector: selector,
-						properties: properties
+						properties: properties,
+						specificity: this.calculateSelectorSpecificity( selector )
 					}
 				);
 				
@@ -264,7 +336,7 @@ component
 		var dom = jSoupClass.parse( javaCast( "string", form.html ) );
 		
 		// Locate all the style nodes.
-		var styleNodes = dom.select( "style" );
+		var styleNodes = dom.select( javaCast( "string", "style" ) );
 		
 		// Remove the style nodes from the document. Once we inline the CSS, we'll no longer
 		// have a need for the Style nodes.
@@ -277,8 +349,18 @@ component
 		// Parse the CSS rules.
 		var cssRules = this.parseCSS( cssContent );
 		
+		writeDump(cssRules);
+		abort;
+		
 		// Apply the CSS rules to the DOM. This will populate the [style] attributes.
 		this.applyCSSToDOM( dom, cssRules );
+		
+		// Get the output settings so we can control how to conversion to string works. We
+		// want to indent tags with 4-spaces when we convert to string.
+		dom.outputSettings()
+			.prettyPrint( javaCast( "boolean", true ) )
+			.indentAmount( javaCast( "int", 4 ) )
+		;
 		
 		// Return the body element of the updated DOM content. Pretty much everything else 
 		// will be stripped out by the email client (probably). 

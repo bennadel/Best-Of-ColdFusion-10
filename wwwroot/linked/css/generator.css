@@ -55,3 +55,8 @@ textarea.html {
 	height: 700px ;
 	width: 99% ;
 	}
+
+div.renderPreview iframe {
+	width: 99% ;
+	}
+	
