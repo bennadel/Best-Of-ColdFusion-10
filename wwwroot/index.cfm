@@ -10,64 +10,72 @@
 <head>
 	<title>Email HTML Generator</title>
 	
-	<link rel="stylesheet" type="text/css" href="./linked/css/generator.css" />
+	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Exo:400,200,700"></link>
+	<link rel="stylesheet" type="text/css" href="./linked/css/generator.css"></link>
 </head>
 <body>
 	
 	<!-- BEGIN: Header Panel. -->
 	<div class="headerPanel">
 		
-		Email HTML Generator
+		<h1>
+			HTML Email Utility - Best of ColdFusion 10
+		</h1>
+		
+		<div class="subtitle">
+			Designed and Developed by <a href="http://www.bennadel.com" target="_blank">Ben Nadel</a>
+		</div>
 		
 	</div>
 	<!-- END: Header Panel. -->
 	
-	<!-- BEGIN: Editor Panel. -->
-	<div class="editorPanel">
+	<!-- BEGIN: Input Panel. -->
+	<div class="inputPanel">
 		
 		<h2>
-			Enter Your Standard HTML With CSS Classes
+			Enter Your HTML With &lt;STYLE&gt; Tags:
 		</h2>
 		
 		<form>
-			
 			<textarea class="html"></textarea>
-			
 		</form>
 		
 	</div>
-	<!-- END: Editor Panel. -->
+	<!-- END: Input Panel. -->
 	
-	<!-- BEGIN: Results Panel. -->
-	<div class="resultsPanel">
+	<!-- BEGIN: Output Panel. -->
+	<div class="outputPanel">
 		
-		<ul class="tabs">
-			<li class="tab">
-				<a href="#preview">Preview</a>
-			</li>
-			<li class="tab">
-				<a href="#html">HTML</a>
-			</li>
-		</ul>
-		
-		<div class="tabViews">
-		
-			<div class="tabView renderPreview">
-				
-				<iframe src="about:blank"></iframe>
-				
-			</div>
+		<!-- BEGIN: Html Panel. -->
+		<div class="htmlPanel">
 			
-			<div class="tabView htmlPreview">
-				
+			<h2>
+				Your HTML Result With Inlined CSS Styles:
+			</h2>
+			
+			<form>
 				<textarea class="html"></textarea>
-				
-			</div>
-						
+			</form>
+			
 		</div>
+		<!-- END: Html Panel. -->
+		
+		<!-- BEGIN: Preview Panel. -->
+		<div class="previewPanel">
+				
+			<h3>
+				HTML Preview:
+			</h3>
+			
+			<form>
+				<iframe src="about:blank" class="render"></iframe>
+			</form>
+			
+		</div>
+		<!-- END: Preview Panel. -->
 		
 	</div>
-	<!-- END: Results Panel. -->	
+	<!-- END: Output Panel. -->
 	
 	
 	<!-- Load scripts. -->

@@ -7,56 +7,162 @@ body {
 	}
 
 body {
+	color: #333333 ;
 	margin: 0px 0px 0px 0px ;
 	padding: 0px 0px 0px 0px ;
 	}
 	
+
 div.headerPanel {
-	background-color: #E0E0E0 ;
+	background-color: #333333 ;
 	left: 0px ;
-	height: 50px ;
+	height: 93px ;
 	overflow: hidden ;
 	position: fixed ;
 	right: 0px ;
 	top: 0px ;
 	}
+	
+div.headerPanel h1 {
+	color: #FFFFFF ;
+	font-family: "exo", helvetica, arial, sans-serif ;
+	font-size: 30px ;
+	font-weight: 800 ;
+	line-height: 35px ;
+	margin: 13px 0px 5px 0px ;
+	text-align: center ;
+	}
+	
+div.headerPanel div.subtitle {
+	color: #999999 ;
+	font-family: "exo", helvetica, arial, sans-serif ;
+	font-size: 16px ;
+	font-weight: 200 ;
+	line-height: 21px ;
+	text-align: center ;
+	}
+	
+div.headerPanel div.subtitle a {
+	color: #999999 ;
+	}
 
-div.editorPanel {
+div.inputPanel {
 	background-color: #F0F0F0 ;
 	bottom: 0px ;
+	min-height: 400px ;
 	left: 0px ;
 	overflow: hidden ;
 	position: fixed ;
-	top: 50px ;
+	top: 93px ;
 	width: 50% ;
 	}
-
-div.resultsPanel {
-	background-color: #CCCCCC ;
+	
+div.inputPanel h2 {
+	font-family: "exo", helvetica, arial, sans-serif ;
+	font-size: 20px ;
+	font-weight: 400 ;
+	left: 30px ;
+	line-height: 25px ;
+	margin: 0px 0px 0px 0px ;
+	position: absolute ;
+	top: 30px ;
+	}
+	
+div.inputPanel form {
+	bottom: 30px ;
+	left: 30px ;
+	margin: 0px 0px 0px 0px ;
+	position: absolute ;
+	right: 20px ;
+	top: 65px ;
+	}
+	
+div.inputPanel textarea.html {
+	border: 1px solid #999999 ;
+	display: block ;
+	height: 100% ;
+	width: 100% ;
+	}
+	
+div.outputPanel {
+	background-color: #F0F0F0 ;
 	bottom: 0px ;
+	min-height: 400px ;
 	overflow: hidden ;
 	position: fixed ;
 	right: 0px ;
-	top: 50px ;
+	top: 93px ;
 	width: 50% ;
 	}
-
 	
-	
-	
-	
-	
-	
-	
-	
-	
-textarea.html {
-	display: block ;
-	height: 700px ;
-	width: 99% ;
+div.htmlPanel {
+	height: 55% ;
+	position: absolute ;
+	left: 0px ;
+	right: 0px ;
+	top: 0px ;
 	}
 
-div.renderPreview iframe {
-	width: 99% ;
+div.htmlPanel h2 {
+	font-family: "exo", helvetica, arial, sans-serif ;
+	font-size: 20px ;
+	font-weight: 400 ;
+	left: 20px ;
+	line-height: 25px ;
+	margin: 0px 0px 0px 0px ;
+	position: absolute ;
+	top: 30px ;
+	}
+
+div.htmlPanel form {
+	bottom: 5px ;
+	left: 20px ;
+	margin: 0px 0px 0px 0px ;
+	position: absolute ;
+	right: 30px ;
+	top: 65px ;
+	}
+	
+div.htmlPanel textarea.html {
+	border: 1px solid #999999 ;
+	display: block ;
+	height: 100% ;
+	width: 100% ;
+	}
+	
+div.previewPanel {
+	bottom: 0px ;
+	height: 45% ;
+	left: 0px ;
+	position: absolute ;
+	right: 0px ;
+	}
+	
+div.previewPanel h3 {
+	font-family: "exo", helvetica, arial, sans-serif ;
+	font-size: 16px ;
+	font-weight: 400 ;
+	left: 20px ;
+	line-height: 21px ;
+	margin: 0px 0px 0px 0px ;
+	position: absolute ;
+	top: 15px ;
+	}
+	
+div.previewPanel form {
+	bottom: 30px ;
+	left: 20px ;
+	margin: 0px 0px 0px 0px ;
+	position: absolute ;
+	right: 30px ;
+	top: 43px ;
+	}
+
+div.previewPanel iframe.render {
+	background-color: #FFFFFF ;
+	border: 1px solid #999999 ;
+	height: 100% ;
+	display: block ;
+	width: 100% ;
 	}
 	
