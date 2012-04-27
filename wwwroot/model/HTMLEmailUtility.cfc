@@ -349,9 +349,6 @@ component
 		// Parse the CSS rules.
 		var cssRules = this.parseCSS( cssContent );
 		
-		writeDump(cssRules);
-		abort;
-		
 		// Apply the CSS rules to the DOM. This will populate the [style] attributes.
 		this.applyCSSToDOM( dom, cssRules );
 		

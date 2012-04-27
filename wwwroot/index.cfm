@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Email HTML Generator</title>
+	<title>HTML Email Utility - Best of ColdFusion 10 by Ben Nadel</title>
 	
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Exo:400,200,700"></link>
 	<link rel="stylesheet" type="text/css" href="./linked/css/generator.css"></link>
