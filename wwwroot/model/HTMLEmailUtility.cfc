@@ -19,33 +19,50 @@ component
 	}
 	
 	
+	// I add a selector error to the document. This injects a Comment node in the Body tag in
+	// order to indicate that the given selector is not supported by jSoup and its use resulted
+	// in a caught exception.
+	function addSelectorError( Any dom, String selector, Any error ){
+		
+		// Add to the beginning of the BODY tag.
+		dom.body().prependChild(
+			createObject( "java", "org.jsoup.nodes.Comment" ).init(
+				javaCast( "string", "ERROR: Selector not supported [ #selector# ][ #error.message# ]" ),
+				javaCast( "string", "" )
+			)
+		);
+		
+		// Return this object for method chaining.
+		return( this );
+		
+	}
+	
+	
+	// I add a selector warning to the document. This injects a Comment node in the Body tag in
+	// order to indicate that the given selector did not match any elements.
+	function addSelectorWarning( Any dom, String selector ){
+		
+		// Add to the beginning of the BODY tag.
+		dom.body().prependChild(
+			createObject( "java", "org.jsoup.nodes.Comment" ).init(
+				javaCast( "string", "WARNING: No element match for selector [ #selector# ]" ),
+				javaCast( "string", "" )
+			)
+		);
+		
+		// Return this object for method chaining.
+		return( this );
+		
+	}
+	
+	
 	// I apply the given CSS rules to the given jSoup DOM. This updates the [style] attribute
 	// of all elements that match the CSS rule selectors.
 	function applyCSSToDOM( Any dom, Array cssRules ){
 		
-		// Before we apply the CSS rules, we want to quarantine any existing inline CSS. This
-		// is an important step because the existing inline CSS should always come last (for
-		// important); however, the CSS rules should be applied in-order.
-		var nodesWithStyle = dom.select( javaCast( "string", "*[style]" ) );
-		
-		// Loop over existing line-style nodes to move into a temp attribute.
-		for (var node in nodesWithStyle){
-			
-			// Move style to a data attribute.
-			node.attr( 
-				javaCast( "string", "data-temp-style" ), 
-				node.attr( javaCast( "string", "style" ) )
-			);
-			
-			// Reset the style attribute.
-			node.attr( 
-				javaCast( "string", "style" ), 
-				javaCast( "string", "" ) 
-			);
-			
-		}
-		
-		// Loop over each rule to apply it in turn.
+		// Loop over each rule to apply it to the Document. On our first pass, all we're going to
+		// do is build up specificity-based data attributes. Then, once those are applied, we'll 
+		// execute a second pass on the document to build up the Style attributes.
 		for (var rule in cssRules){
 			
 			// Select all the nodes that match the given selector. This is really the only step
@@ -58,6 +75,10 @@ component
 			
 			} catch( Any error ){
 				
+				// The given selector is not supported by the jSoup parser. Let's add a WARNING 
+				// to the output to let them know they may want to use a different syntax.
+				this.addSelectorError( dom, rule.selector, error );
+				
 				// The selector is not supported. Skip to the next rule.
 				continue;
 				
@@ -66,52 +87,118 @@ component
 			// Make sure we have nodes. If we don't bypass the node processing.
 			if (!selectedNodes.size()){
 				
+				// Let's add a NOTICE to the output to let them know that they have styles that 
+				// are not actually being used in the HTML generation. 
+				this.addSelectorWarning( dom, rule.selector );
+				
 				// Continue on to the next rule.
 				continue;
 				
 			}
 			
 			// Now that we know we have nodes to augment with inline CSS properties, let's create
-			// the CSS properties collection as a single string.
-			var propertiesList = "";
+			// the CSS properties collection as a single string. This way, we don't have to flatten
+			// it for each node.
+			var propertiesList = this.flattenProperties( rule.properties );
 			
-			// Flatten the collection of properties into a single string.
-			arrayEach(
-				rule.properties,
-				function( property ){
-					
-					// Flatten the property.
-					propertiesList &= "#property.name#:#property.value#;";
-					
-				}
-			);
-			
-			// Loop over each selected node and inject the CSS inline.
+			// Loop over each selected node and inject the specificity-based data attribute.
 			for (var node in selectedNodes){
 				
-				// When injecting the CSS remember to keep the newest CSS at the end of the attribute
-				// so that it takes the highest precedence. 
+				// In case this node has been selected by a previous selector, make sure to append
+				// the CSS to the end of the specificity-based attribute. This way, we can keep 
+				// CSS rules with the same specificy added in-order of the document, top-to-bottom.
 				node.attr(
-					javaCast( "string", "style" ),
-					javaCast( "string", (node.attr( javaCast( "string", "style" ) ) & propertiesList ) )
+					javaCast( "string", "data-selector-#rule.specificity#" ),
+					javaCast( 
+						"string", 
+						(node.attr( javaCast( "string", "data-selector-#rule.specificity#" ) ) & propertiesList)
+					)
 				);
 				
 			}
 			
 		}
 		
-		// Now that we've applied the CSS rules, we need to re-apply the original inline CSS 
-		// after the CSS that we've injected (in order to maintain presendence).
-		for (var node in nodesWithStyle){
+		// Now that we've created all of our specificity-based data attributes, we have to go back
+		// over the document to aggregate those into a single Style attribute. Let's gather all of
+		// the nodes that have data attributes.
+		var selectedNodes = dom.select( javaCast( "string", "*[^data-selector-]" ) );
+		
+		// Loop over the selected nodes to compile the Style attribute.
+		for (var node in selectedNodes){
 			
-			// Move temp stlye back into place.
-			node.attr(
-				javaCast( "string", "style" ),
-				(node.attr( javaCast( "string", "style" ) ) & node.attr( javaCast( "string", "data-temp-style" ) ) )
+			// Get the HTML5 "data-" attributes from the node. 
+			// 
+			// NOTE: This returns the attributes values WITHOUT the "data-" prefix.
+			var dataAttributes = node.dataset();
+			
+			// We're going to build up an array of the selector attributes so that we can then
+			// subsequently apply them to the Style attribute.
+			var styleAttributes = [];
+			
+			// Translate the map of data attributes into an array in which we are only going to 
+			// store the relevant selector attributes.
+			structEach(
+				dataAttributes,
+				function( key, value ){
+					
+					// Make sure this pair is one of our selectors.
+					if (reFindNoCase( "^selector-\d+$", key )){
+						
+						// Add this to the style collection for this node.
+						arrayAppend(
+							styleAttributes,
+							{
+								name: ("data-" & key),
+								specificity: fix( listLast( key, "-" ) ),
+								style: value
+							}
+						);
+						
+					}
+					
+				}
 			);
-
-			// Delete the temp attribute.
-			node.removeAttr( javaCast( "string", "data-temp-style" ) );
+			
+			// Now, let's sort the style array based on specificity. We're going to order the higher
+			// specificities first since we'll be adding them in reverse order to the style attribute.
+			arraySort(
+				styleAttributes,
+				function( attribute1, attribute2 ){
+					
+					// Sort Descending.
+					if (attribute1.specificity <= attribute2.specificity){
+						
+						return( 1 );
+						
+					} else {
+						
+						return( -1 );
+						
+					}
+					
+				}
+			);
+			
+			// Now that we've aggregated and sort our specificity-based attributes, we can apply 
+			// them back to Style attribute of the given node. As we do this, we'll apply the 
+			// style values in specificity-ascending order and delete the temp attributes.
+			for (var styleAttribute in styleAttributes){
+				
+				// Prepend each value to the style attribute to keep existing Style values as the
+				// most important.
+				node.attr(
+					javaCast( "string", "style" ),
+					javaCast( 
+						"string", 
+						(styleAttribute.style & node.attr( javaCast( "string", "style" ) ))
+					)
+				);
+				
+				// Delete our temporary data attribute.
+				node.removeAttr( javaCast( "string", styleAttribute.name ) );
+				
+			}
 			
 		}
 		
@@ -134,41 +221,97 @@ component
 	// doing the best job - we're just using lose RegularExpression matching.
 	function calculateSelectorSpecificity( String selector ){
 		
-		// Before we calculate the values, we want to strip out "noise" that will make the rough
-		// regular expressions harder to work with. 
-		
-		// Strip out the inner-text of an attribute selector.
-		selector = reReplace( selector, "\[[^\]]+\]", "[]", "all" );
-		
-		// Strip out any pseudo-selectors.
-		selector = reReplace( selector, ":[\w_-]+", "", "all" );
-		
-		// Replace the wild-card with a made-up element.
-		selector = reReplace( selector, "\*", "node", "all" );
-		
-		// Now, let's put a space in front of key syntax elements to make the elemental matching
-		// a bit easier to parse.
-		selector = reReplace( selector, "(##\w+|\.\w+|\[)", " \1", "all" );
-		
-		// Get the number of ID selectors.
+		// Before we start parsing the selector, we're gonna try to strip out characters that will
+		// making pattern matching more difficult.
+
+		// Strip out wild-card matches - these don't contribute to a selector specificity.
+		selector = replace( selector, "*", "", "all" );
+
+		// Strip out any quoted values - these will only be in the attribute selectors (and don't 
+		// contribute to our specificity calculation).
+		selector = reReplace( selector, """[^""]*""", "", "all" );
+		selector = reReplace( selector, "'[^']*'", "", "all" );
+
+		// Now that we've stripped out the quoted values, let's strip out any content within the 
+		// attribute selectors.
+		selector = reReplace( selector, "\[[^\]]*\]", "[]", "all" );
+
+		// Strip out any special child and descendant selectors as these don't really contribute
+		// to specificity.
+		selector = reReplace( selector, "[>+~]+", " ", "all" );
+
+		// Strip out any "function calls"; these will be for complex selectors like :not() and 
+		// :eq(). We're gonna do this in a loop so that we can simplify the replace and handle 
+		// nested groups of parenthesis.
+		while (find( "(", selector )){
+
+			// Strip out the smallest parenthesis.
+			selector = reReplace( selector, "\([^)]*\)", "", "all" );
+
+		}
+
+		// Now that we've stripped off any parenthesis, our pseudo-elements and pseudo-classes 
+		// should all be in a uniform. However, pseudo-elements and pseudo-classes actually have
+		// different specifity than each other. To make things simple, let's convert pseudo-
+		// classes (which have high specificity) into mock classes.
+		selector = reReplace(
+			selector,
+			":(first-child|last-child|link|visited|hover|active|focus|lang)",
+			".pseudo",
+			"all"
+		);
+
+		// Now that we've removed the pseudo-classes, the only constructs that start with ":" 
+		// should be the pseudo-elements. Let's replace these with mock elements. Notice
+		// that we are injecting a space before the element name.
+		selector = reReplace( selector, ":[\w-]+", " pseudo", "all" );
+
+		// Now that we've cleaned up the selector, we can count the number of key elements within
+		// the selector.
+
+		// Count the number of ID selectors. These are the selectors with the highest specificity.
 		var idCount = arrayLen(
-			reMatch( "\s##\w+", selector )
+			reMatch( "##[\w-]+", selector )
 		);
-		
-		// Get the number of attributes and pseudo-selectors.
-		var attributeCount = arrayLen(
-			reMatch( "\s(\[\]|\.[\w_-]+)", selector )
+
+		// Count the number of classes, attributes, and pseudo-classes. Remember, we converted 
+		// our pseudo-classes to be mock classes (.pseudo).
+		var classCount = arrayLen(
+			reMatch( "\.[\w_-]+|\[\]", selector )
 		);
-		
-		// Get the number of elements.
+
+		// Count the number of elements and pseudo-elements. Remember, we converted our pseudo-
+		// selements to be mock elements (pseudo).
 		var elementCount = arrayLen(
-			reMatch( "(^|\s)\w+", selector )
+			reMatch( "(^|\s)[\w_-]+", selector )
+		);
+
+		// Now that we have our count of the various parts of the selector, we can calculate 
+		// the specificity by concatenating the parts (as strings), and then converting to a 
+		// number - the number will be the specificity of the selector.
+		return(
+			fix( idCount & classCount & elementCount )
 		);
 		
-		// Concatenate the three numbers (as strings) and then return the numeric product.
-		return(
-			int( idCount & attributeCount & elementCount )
-		);
+	}
+	
+	
+	// I flatten the collection of properties into a single string that can be used in a Style tag.
+	// Each property will be formatted in "name:value;" format.
+	function flattenProperties( Array properties ){
+		
+		// Create our style string container.
+		var style = "";
+		
+		// Flatten the collection of properties into a single string.
+		for (var property in properties){
+			
+			style &= "#property.name#:#property.value#;";
+			
+		}
+		
+		// Return the flattened style value.
+		return( style );
 		
 	}
 	
@@ -333,7 +476,7 @@ component
 	
 		// Parse the incoming HTML into a jSoup DOM (Document Object Model) so that we can 
 		// extract and then integrate the CSS properties.
-		var dom = jSoupClass.parse( javaCast( "string", form.html ) );
+		var dom = jSoupClass.parse( javaCast( "string", html ) );
 		
 		// Locate all the style nodes.
 		var styleNodes = dom.select( javaCast( "string", "style" ) );

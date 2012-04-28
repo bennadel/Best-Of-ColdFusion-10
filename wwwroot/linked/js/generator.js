@@ -6,19 +6,12 @@
 	// technically different snippets of HTML to be considered the "same."
 	function normalizeHtml( html ){
 		
-		// Trim the value and converat all white-space into a space.
+		// Trim the value and convert all white-space into a space.
 		return(
 			html
 				.replace( /^\s+|\s+$/g, "" )
 				.replace( /\s+/g, " " )
 		);
-		
-	}
-	
-	// I determine if the given ASCII value represents the TAB key.  
-	function isTabKey( asciiValue ){
-		
-		return( asciiValue === 9 );
 		
 	}
 	
@@ -55,20 +48,11 @@
 	var lastHtml = "";
 	var lastNormalizedHtml = "";
 	
-	// Disable the TAB key on the input to make typing a bit less error-prone.
-	dom.inputHtml.keydown(
-		function( event ){
-			
-			// If the depressed key is TAB, don't blur the input.
-			if (isTabKey( event.which )){
-				
-				event.preventDefault();
-				
-			}
-			
-		}
-	);
+	// Disable the default TAB key on the input to make typing a bit more natural. This plugin
+	// will enable intuitive tabbing in the textarea (ie. actually applying the tab character).
+	dom.inputHtml.tabby();
 	
+	// On keyup, let's pass the updated HTML to the server and get the email-ready HTML.
 	dom.inputHtml.keyup(
 		function( event ){
 			
@@ -76,10 +60,10 @@
 			var html = dom.inputHtml.val();
 			
 			// Check to see if the new HTML value is exactly the same as the previous HTML value.
-			// This will happen if the user is simply navigating around the HTML without chaning it.
+			// This will happen if the user is simply navigating around the HTML without changing it.
 			if (lastHtml === html){
 				
-				// Don't make an unnecessary AJAX request.
+				// Don't make an unnecessary AJAX request (or normalization requests).
 				return;
 				
 			}
@@ -99,7 +83,7 @@
 					
 			}
 			
-			// Store the standard and normalized values for our next update check.
+			// Store the standard and normalized values for our next keypress-based update check.
 			lastHtml = html;
 			lastNormalizedHtml = normalizedHtml;
 			

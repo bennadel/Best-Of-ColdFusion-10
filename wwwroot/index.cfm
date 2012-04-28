@@ -10,6 +10,7 @@
 <head>
 	<title>HTML Email Utility - Best of ColdFusion 10 by Ben Nadel</title>
 	
+	<!-- Load styles and Fonts. -->
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Exo:400,200,700"></link>
 	<link rel="stylesheet" type="text/css" href="./linked/css/generator.css"></link>
 </head>
@@ -80,6 +81,7 @@
 	
 	<!-- Load scripts. -->
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+	<script type="text/javascript" src="./linked/js/jquery.textarea.js"></script>
 	<script type="text/javascript" src="./linked/js/generator.js"></script>
 	
 </body>
