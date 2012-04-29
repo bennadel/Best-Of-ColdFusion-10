@@ -140,78 +140,49 @@ component
 		// Loop over the selected nodes to compile the Style attribute.
 		for (var node in selectedNodes){
 			
-			// Get the HTML5 "data-" attributes from the node. 
-			// 
-			// NOTE: This returns the attributes values WITHOUT the "data-" prefix.
-			var dataAttributes = node.dataset();
-			
-			// We're going to build up an array of the selector attributes so that we can then
-			// subsequently apply them to the Style attribute.
-			var styleAttributes = [];
-			
-			// Translate the map of data attributes into an array in which we are only going to 
-			// store the relevant selector attributes.
-			structEach(
-				dataAttributes,
-				function( key, value ){
-					
-					// Make sure this pair is one of our selectors.
-					if (reFindNoCase( "^selector-\d+$", key )){
-						
-						// Add this to the style collection for this node. We're prepending the 
-						// data- prefix to the attribute name so that we can more easily delete
-						// it at a late step.
-						arrayAppend(
-							styleAttributes,
-							{
-								name: ("data-" & key),
-								specificity: fix( listLast( key, "-" ) ),
-								style: value
-							}
-						);
-						
-					}
-					
-				}
-			);
-			
-			// Now, let's sort the style array based on specificity. We're going to order the higher
-			// specificities first since we'll be adding them in reverse order to the style attribute.
-			arraySort(
-				styleAttributes,
-				function( attribute1, attribute2 ){
-					
-					// Sort Descending by specificity.
-					if (attribute1.specificity <= attribute2.specificity){
-						
-						return( 1 );
-						
-					} else {
-						
-						return( -1 );
-						
-					}
-					
-				}
-			);
-			
-			// Now that we've aggregated and sort our specificity-based attributes, we can apply 
-			// them back to Style attribute of the given node. As we do this, we'll apply the 
-			// style values in specificity-ascending order and delete the temp attributes.
-			for (var styleAttribute in styleAttributes){
-				
-				// Prepend each value to the style attribute to keep existing Style values as the
-				// most important.
-				this.prependAttribute( node, "style", styleAttribute.style );
-				
-				// Delete our temporary data attribute.
-				node.removeAttr( javaCast( "string", styleAttribute.name ) );
-				
-			}
+			// Merge the selector attributes into the style attribute.
+			this.compileSelectorAttributes( node );
 			
 		}
 		
+		// Get any nodes that have Class attributes - these can be stripped as they will no longer
+		// server any purpose with the styles being inlined.
+		for (var node in this.select( "*[class]" )){
+			
+			// Strip out any Class attribute.
+			node.removeAttr( javaCast( "string", "class" ) );			
+			
+		}
+		
+		// Return this object for method chaining.
+		return( this );
+		
 	}
+	
+	
+	// I compile the temporarily-cached style values in the selector attributes into the Style
+	// attribute of the given node.
+	function compileSelectorAttributes( Any node ){
+		
+		// As the CSS rules were applied to the document, they were stored in temporary attributes
+		// so that the selector specificity could be taken into account once we had all the known
+		// rules for any given node. Now, let's extract those temporary attributes so that we can
+		// compile them and apply them to the Style attribute.
+		var selectorAttributes = this.extractSelectorAttributes( node );
+		
+		// By default, the selector attributes collection is return in specificity-first order. 
+		// As such, we'll be prepending the values to the Style attribute so that the style portions
+		// read in ASC order of specificity going from left-to-right; this also allows the existing
+		// style value to have the highest precedence. delete the temp attributes.
+		for (var selectorAttribute in selectorAttributes){
+			
+			// Prepend each value to the style attribute to keep existing Style values as the
+			// most important.
+			this.prependAttribute( node, "style", selectorAttribute.style );
+			
+		}
+		
+	} 
 	
 	
 	// I create a comment node with the given content.
@@ -224,6 +195,74 @@ component
 				javaCast( "string", "" )
 			)
 		);
+		
+	}
+	
+	
+	// I extract the temporary Selector attributes that are storing unmerged Style data for the
+	// given node.
+	function extractSelectorAttributes( Any node ){
+		
+		// We're going to build up an array of the selector attributes so that we can then
+		// subsequently apply them to the Style attribute.
+		var selectorAttributes = [];
+		
+		// Get the HTML5 "data-" attributes from the node. Since we don't know what the 
+		// specificity of the various rules have been, we don't know what attributes to look
+		// for. We'll have to get all the HTML5 attributes and then look for the ones that match
+		// our naming convension.
+		// 
+		// NOTE: dataset() returns the attributes values WITHOUT the "data-" prefix.
+		//
+		// NOTE: We have duplicate() the return value from dataset() because ColdFusion will throw
+		// an error. If we use an intermediary variable, it works; but it doesn't work if we inline
+		// the request. Must be some funky compilation error??
+		structEach(
+			duplicate( node.dataset() ),
+			function( key, value ){
+				
+				// Make sure this pair is one of our selectors.
+				if (reFindNoCase( "^selector-\d+$", key )){
+					
+					// Add this to the selectors collection for this node.
+					arrayAppend(
+						selectorAttributes,
+						{
+							specificity: fix( listLast( key, "-" ) ),
+							style: value
+						}
+					);
+					
+					// Delete the temporary selector attribute - it is no longer valuable.
+					node.removeAttr( javaCast( "string", ("data-" & key) ) );
+					
+				}
+				
+			}
+		);
+		
+		// Now, let's sort the selector array based on specificity. We're going to order the higher
+		// specificities first since we'll be adding them in reverse order to the style attribute.
+		arraySort(
+			selectorAttributes,
+			function( attribute1, attribute2 ){
+				
+				// Sort Descending by specificity.
+				if (attribute1.specificity <= attribute2.specificity){
+					
+					return( 1 );
+					
+				} else {
+					
+					return( -1 );
+					
+				}
+				
+			}
+		);
+		
+		// Return the extracted and sorted attributes.
+		return( selectorAttributes );
 		
 	}
 	

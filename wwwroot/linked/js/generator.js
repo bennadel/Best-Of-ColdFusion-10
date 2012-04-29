@@ -152,7 +152,8 @@
 	var dom = {
 		inputHtml: $( "div.inputPanel textarea.html" ),
 		outputHtml: $( "div.htmlPanel textarea.html" ),
-		outputPreview: $( "div.previewPanel iframe.render" )
+		outputPreview: $( "div.previewPanel iframe.render" ),
+		demoData: $( "script.demoData" )
 	};
 	
 	// In order to minimize the number of AJAX we have to make (which is already too many),
@@ -182,6 +183,17 @@
 			250
 		)
 	);
+	
+	// If there is no data in the form, use the demo data.
+	if (dom.inputHtml.val() === ""){
+		
+		// Strip out two leading tabs from every line. Since our demo "script" tag is indented
+		// twice, this replacement will leave the content flushed-left in the textarea.
+		dom.inputHtml.val( 
+			dom.demoData.html().replace( /(\r\n?|\n)\t{2}/g, "$1" )
+		);
+		
+	}
 	
 	// Update the output panel when the page loads - this will kick off the first check for
 	// html if there is content stored in the textarea.
