@@ -10,7 +10,7 @@
 	by inlining the CSS classes into the elements that match the CSS selectors. This also
 	attempts to inline CSS properties that are inherited by parent classes. 
 --->
-<cfset emailMarkup = htmlEmailUtility.prepareHtmlForEmail( form.html ) />
+<cfset emailMarkup = htmlEmailUtility.prepareForEmail( form.html ) />
 	
 <!--- Reset the output buffer and stream the HTML content back to the client. --->
 <cfcontent

@@ -158,7 +158,9 @@ component
 					// Make sure this pair is one of our selectors.
 					if (reFindNoCase( "^selector-\d+$", key )){
 						
-						// Add this to the style collection for this node.
+						// Add this to the style collection for this node. We're prepending the 
+						// data- prefix to the attribute name so that we can more easily delete
+						// it at a late step.
 						arrayAppend(
 							styleAttributes,
 							{
@@ -179,7 +181,7 @@ component
 				styleAttributes,
 				function( attribute1, attribute2 ){
 					
-					// Sort Descending.
+					// Sort Descending by specificity.
 					if (attribute1.specificity <= attribute2.specificity){
 						
 						return( 1 );
@@ -209,11 +211,7 @@ component
 			
 		}
 		
-		// Return the augmented jSoup document node.
-		return( dom );
-		
 	}
-	
 	
 	
 	// I create a comment node with the given content.
@@ -298,7 +296,7 @@ component
 		
 		// Locate and return the underyling jSoup nodes.
 		return(
-			variables.dom.select( javaCast( "string", "selector" ) )
+			variables.dom.select( javaCast( "string", selector ) )
 		);
 		
 	}

@@ -16,7 +16,7 @@ component
 	
 	// I take HTML with embedded STYLE tags and I pares the CSS and inline it within the DOM
 	// so that the email clients will be able to render it [more] properly.
-	function prepareHtmlForEmail( String html ){
+	function prepareForEmail( String html ){
 	
 		// Parse the incoming HTML into a jSoup DOM (Document Object Model) so that we can 
 		// extract and then integrate the CSS properties.
