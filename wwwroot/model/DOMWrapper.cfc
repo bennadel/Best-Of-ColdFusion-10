@@ -118,7 +118,7 @@ component
 			// Now that we know we have nodes to augment with inline CSS properties, let's create
 			// the CSS properties collection as a single string. This way, we don't have to flatten
 			// it for each node.
-			var propertiesList = variables.cssParser.flattenProperties( rule.properties );
+			var propertiesList = rule.style;
 			
 			// Loop over each selected node and inject the specificity-based data attribute.
 			for (var node in selectedNodes){
