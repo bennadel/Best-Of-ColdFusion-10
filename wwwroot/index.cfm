@@ -171,7 +171,7 @@
 
 	
 	<!-- Load scripts. -->
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+	<script type="text/javascript" src="./linked/js/jquery-1.7.2.min.js"></script>
 	<script type="text/javascript" src="./linked/js/jquery.textarea.js"></script>
 	<script type="text/javascript" src="./linked/js/generator.js"></script>
 	

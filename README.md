@@ -42,10 +42,16 @@ necessarily the right too for the job. I am a little confused as to the
 proper use-case for it.
 * **arrayAppend( x, y, true )**: I LOVE the new, third property which allows 
 the injected value to be flattened into the target array. This is hugely useful.
-* **arraEach()**: Using closures to iterate over an array. Awesome! Though, I 
+* **arrayEach()**: Using closures to iterate over an array. Awesome! Though, I 
 must say that using For-In on an array feels equally useful at times. But, 
 there are times when arrayEach() feels like the better choice.
 * **arraySort()**: Using closures to define the comparator for the sort.
 * **structEach()**: Using closures to iterate over the key-value pairs.
+
+## Installation Instructions
+
+Runs as-is from anywhere so long as ColdFusion 10 is the underlying engine. All
+dependencies are in the source code, including the jSoup JAR file and JavaScript
+files. No internet connectivity is required.
 
 That's all - I hope you like it! ColdFusion 10 FTW!!!!
